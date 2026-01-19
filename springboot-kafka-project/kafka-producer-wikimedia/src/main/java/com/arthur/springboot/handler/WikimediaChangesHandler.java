@@ -1,18 +1,21 @@
 package com.arthur.springboot.handler;
 
+import com.arthur.springboot.model.ApiResponse;
 import com.launchdarkly.eventsource.EventHandler;
 import com.launchdarkly.eventsource.MessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 public class WikimediaChangesHandler implements EventHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WikimediaChangesHandler.class.getName());
-    private KafkaTemplate<String,String> kafkaTemplate;
+    private KafkaTemplate<String,ApiResponse> kafkaTemplate;
     private String topic;
-
-    public WikimediaChangesHandler(KafkaTemplate<String, String> kafkaTemplate, String topic) {
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    public WikimediaChangesHandler(KafkaTemplate<String, ApiResponse> kafkaTemplate, String topic) {
         this.kafkaTemplate = kafkaTemplate;
         this.topic = topic;
     }
@@ -29,8 +32,15 @@ public class WikimediaChangesHandler implements EventHandler {
 
     @Override
     public void onMessage(String s, MessageEvent messageEvent) throws Exception {
-        LOGGER.info(String.format("Event data -> %s", messageEvent.getData()));
-        kafkaTemplate.send(topic, messageEvent.getData());
+        String data = messageEvent.getData();
+        try{
+            ApiResponse apiResponse = objectMapper.readValue(data, ApiResponse.class);
+            kafkaTemplate.send(topic,apiResponse);
+            LOGGER.info(String.format("Api Response -> %s", apiResponse.toString()));
+        }
+        catch (JacksonException e){
+            LOGGER.error("Error parsing JSON data");
+        }
     }
 
     @Override

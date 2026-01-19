@@ -1,5 +1,6 @@
 package com.arthur.springboot.producer;
 
+import com.arthur.springboot.model.ApiResponse;
 import com.launchdarkly.eventsource.EventHandler;
 import com.launchdarkly.eventsource.EventSource;
 import com.arthur.springboot.handler.WikimediaChangesHandler;
@@ -17,9 +18,9 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class WikiMediaChangesProducer {
     private static final Logger LOGGER = LoggerFactory.getLogger(WikiMediaChangesProducer.class);
-    private KafkaTemplate <String, String> kafkaTemplate;
+    private KafkaTemplate <String, ApiResponse> kafkaTemplate;
 
-    public WikiMediaChangesProducer(KafkaTemplate<String, String> kafkaTemplate) {
+    public WikiMediaChangesProducer(KafkaTemplate<String, ApiResponse> kafkaTemplate) {
         this.kafkaTemplate = kafkaTemplate;
     }
 
